@@ -1,0 +1,17 @@
+doctype html
+html
+    head
+        title Rebibbia 2.0
+        style
+            include ../css/style.css
+        meta(name="viewport" content="width=device-width, initial-scale=1")
+    body
+        .menu
+            a(href='home') Home
+            a(href='bollette') Bollette
+            a(href='pulizie') Turni Pulizie
+
+        block header
+            h1 #{title}
+
+        block content

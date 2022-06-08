@@ -1,0 +1,18 @@
+extends deafault
+
+block content
+    table
+        tr
+            each h in header
+                th= h
+
+        each b in bollette
+            tr
+            each val in b
+                if val[0] === '-'
+                    td.red= val.substring(1)
+                else
+                    td= val
+
+    .footer
+        a(href='bollette?query=stats') Statistiche
