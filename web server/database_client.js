@@ -1,5 +1,6 @@
 var mysql = require('mysql');
 var moment = require('moment')
+const fs = require('fs');
 
 
 class DatabaseClient{
@@ -27,13 +28,29 @@ class DatabaseClient{
 
     async generate_summary(databaseHeader) {
 
-        //TODO - use cache
+        var sql = "";
+        try{
+            var json_date = fs.statSync('data/summary.json').mtime;
+            json_date = moment(json_date, "YYYY-MM-DD")
+
+            sql = "call getLastUpdate()";
+            const result = await this.execute_query(sql);
+            const db_date = moment(result[0][0].UPDATE_TIME, "YYYY-MM-DD");
+
+            if (json_date > db_date){
+                console.log('Use summary.json from cache');
+                return;
+            }
+        }catch(err){
+            console.log('Create new summary.json file', err);
+        }
+
 
         var headers = [... databaseHeader];
         var table = [];
 
         //TODO - use view
-        var sql = "SELECT DataPagamento, BollettaID, Utenza, ImportoTotale, Scadenza FROM Bollette";
+        sql = "SELECT DataPagamento, BollettaID, Utenza, ImportoTotale, Scadenza FROM Bollette";
         var bollette = await this.execute_query(sql);
 
         sql = "SELECT Nome From Coinquilini";
@@ -74,7 +91,8 @@ class DatabaseClient{
 
         //TODO riga totale
 
-        return table;
+        let data = JSON.stringify(table);
+        fs.writeFileSync('data/summary.json', data);
     }
 
 
