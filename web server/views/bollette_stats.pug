@@ -1,2 +1,12 @@
 extends deafault
 
+block content
+    table
+        tr
+            each h in header
+                th= h
+
+        each b in bollette
+            tr
+            each val in b
+                td= val
