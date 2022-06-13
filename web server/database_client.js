@@ -89,13 +89,43 @@ class DatabaseClient{
             table.push(row);
         });
 
-        //TODO riga totale
+        //TODO riga totale -> use call quotaTotale(name)
 
         let data = JSON.stringify(table);
         fs.writeFileSync('data/summary.json', data);
     }
 
+    async generate_stats(){
+        var sql = "";
+        try{
+            var json_date = fs.statSync('data/stats.json').mtime;
+            json_date = moment(json_date, "YYYY-MM-DD")
 
+            sql = "call getLastUpdate()";
+            const result = await this.execute_query(sql);
+            const db_date = moment(result[0][0].UPDATE_TIME, "YYYY-MM-DD");
+
+            if (json_date > db_date){
+                console.log('Use stats.json from cache');
+                return;
+            }
+        }catch(err){
+            console.log('Create new stats.json file');
+        }
+
+        var table = [];
+
+        sql = "CALL getStats()"
+        var results = await this.execute_query(sql);
+        results[0].forEach(function (r) {
+            table.push(r)
+        });
+        //console.log(table)
+
+        let data = JSON.stringify(table);
+        fs.writeFileSync('data/stats.json', data);
+
+    }
 
     execute_query(sql){
 

@@ -3,12 +3,14 @@ var express = require('express');
 var config = require('./config.json');
 const DatabaseClient = require('./database_client.js');
 const pug = require('pug');
+const fs = require("fs");
 
 
 const PORT = config.serverPort;
 const IP = config.serverIP;
 const URL = 'http://' + IP + ':' + PORT;
-var tableHeader = config.tableHeader;
+var summaryHeader = config.summaryHeader;
+const statsHeader = config.statsHeader;
 const databaseHeader = config.databaseHeader;
 
 //Connect to database
@@ -28,14 +30,20 @@ app.get('/*', async function (req, res) {
     console.log('Received: %s', req.url)
 
     if (req.url === '/bollette') {
-        var content = await database.generate_summary(databaseHeader);
+        await database.generate_summary(databaseHeader);
+        var raw_data = fs.readFileSync('data/summary.json');
+        var content = JSON.parse(raw_data);
 
-        res.render('bollette_summary', {title: 'Bollette', header: tableHeader.concat(Object.keys(content[0]).slice(5)), bollette: content});
+        res.render('bollette_summary', {title: 'Bollette', header: summaryHeader.concat(Object.keys(content[0]).slice(5)), bollette: content});
     }
 
     else if (req.url === '/bollette?query=stats') {
-        //TODO - generate Bollette Stats html file
-        res.render('bollette_stats', {title: 'Statistiche Bollette'});
+        await database.generate_stats();
+        var raw_data = fs.readFileSync('data/stats.json');
+        var content = JSON.parse(raw_data);
+
+
+        res.render('bollette_stats', {title: 'Statistiche Bollette', header: statsHeader, bollette: content});
     }
 
     else if (req.url === '/home') {
